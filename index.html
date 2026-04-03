@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>道路占用管理システム - デモ</title>
+<style>
+  :root {
+    --navy: #1E2D5C;
+    --dark: #101828;
+    --sidebar-hover: #1D2939;
+    --accent: #2E7D8C;
+    --accent-light: #E8F4F6;
+    --orange: #E8833A;
+    --text: #2C2C2C;
+    --text-light: #5A6378;
+    --text-muted: #98A2B3;
+    --border: #E0E3EB;
+    --input-border: #D0D5DD;
+    --bg: #F5F6FA;
+    --white: #FFFFFF;
+    --green: #12B76A;
+    --green-light: #ECFDF3;
+    --yellow: #F79009;
+    --yellow-light: #FFFAEB;
+    --red: #C44545;
+    --red-light: #FEF3F2;
+    --blue: #2E90FA;
+    --blue-light: #EFF8FF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Meiryo UI', 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* ---- Sidebar ---- */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--dark); color: #fff;
+    display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 20px 16px 12px; font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--sidebar-hover);
+  }
+  .sidebar-logo small { display: block; font-size: 10px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 12px 8px; }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px;
+    color: var(--text-muted); text-decoration: none; font-size: 13px; margin-bottom: 2px;
+    transition: all 0.15s;
+  }
+  .sidebar-nav a:hover { background: var(--sidebar-hover); color: #fff; }
+  .sidebar-nav a.active { background: var(--sidebar-hover); color: #fff; font-weight: 600; }
+  .sidebar-nav a .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-nav .section-label {
+    font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+    padding: 16px 12px 6px; font-weight: 600;
+  }
+  .sidebar-footer {
+    padding: 16px; border-top: 1px solid var(--sidebar-hover); font-size: 11px; color: var(--text-muted);
+  }
+  .sidebar-badge {
+    margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 7px; border-radius: 10px;
+  }
+
+  /* ---- Main ---- */
+  .main { margin-left: 220px; flex: 1; min-height: 100vh; }
+
+  /* Header */
+  .header {
+    background: var(--white); border-bottom: 1px solid var(--border); padding: 12px 32px;
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50;
+  }
+  .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .page-title { font-size: 18px; font-weight: 700; color: var(--navy); }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .header-user {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-light);
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;
+  }
+
+  /* Content */
+  .content { padding: 24px 32px; }
+
+  /* Stats cards */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px;
+    transition: box-shadow 0.15s;
+  }
+  .stat-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .stat-value { font-size: 28px; font-weight: 700; }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Search bar */
+  .search-bar {
+    display: flex; gap: 10px; margin-bottom: 20px; align-items: center;
+  }
+  .search-input {
+    flex: 1; max-width: 420px; padding: 9px 14px 9px 36px; border: 1px solid var(--input-border);
+    border-radius: 8px; font-size: 13px; background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2398A2B3' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") no-repeat 12px center;
+    outline: none; transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--input-border); background: var(--white); color: var(--text-light);
+    transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #25697a; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-danger { color: var(--red); border-color: var(--red); }
+  .btn-danger:hover { background: var(--red-light); }
+
+  /* Table */
+  .table-wrap {
+    background: var(--white); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--text-muted);
+    background: var(--bg); border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFBFC; }
+  .id-link { color: var(--blue); font-weight: 600; cursor: pointer; font-family: 'Consolas', monospace; }
+  .id-link:hover { text-decoration: underline; }
+
+  /* Badge */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gray { background: var(--bg); color: var(--text-muted); }
+
+  /* Views */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ---- Case Detail (View 2) ---- */
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card {
+    background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 14px; font-weight: 700; color: var(--navy);
+  }
+  .card-body { padding: 16px 20px; }
+  .info-row {
+    display: flex; padding: 8px 0; border-bottom: 1px solid #F2F4F7; align-items: center;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { width: 130px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+  .info-value { font-size: 13px; color: var(--text); font-weight: 500; }
+
+  .doc-row {
+    display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #F2F4F7; gap: 10px;
+  }
+  .doc-row:last-child { border-bottom: none; }
+  .doc-icon { font-size: 18px; }
+  .doc-name { flex: 1; font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 500; }
+  .doc-name:hover { text-decoration: underline; }
+  .doc-size { font-size: 11px; color: var(--text-muted); }
+
+  .map-placeholder {
+    height: 200px; background: #e8f0e8; border-radius: 8px; position: relative; overflow: hidden;
+  }
+  .map-grid-h, .map-grid-v {
+    position: absolute; background: rgba(255,255,255,0.7);
+  }
+  .map-grid-h { height: 3px; left: 0; right: 0; }
+  .map-grid-v { width: 3px; top: 0; bottom: 0; }
+  .map-pin {
+    position: absolute; font-size: 24px; transform: translate(-50%, -100%);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); cursor: pointer;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translate(-50%, -100%); }
+    50% { transform: translate(-50%, -110%); }
+  }
+  .map-label {
+    position: absolute; background: var(--white); padding: 4px 10px; border-radius: 6px;
+    font-size: 11px; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    white-space: nowrap;
+  }
+
+  /* ---- Update Dashboard (View 3) ---- */
+  .dashboard-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 20px; }
+  .fee-total {
+    text-align: center; padding: 20px 0 12px;
+  }
+  .fee-label { font-size: 12px; color: var(--text-muted); }
+  .fee-amount { font-size: 32px; font-weight: 800; color: var(--navy); margin: 4px 0; }
+  .fee-row {
+    display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid #F2F4F7;
+  }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-cat { flex: 1; font-size: 12px; color: var(--text); }
+  .fee-val { font-size: 12px; font-weight: 600; color: var(--navy); width: 80px; text-align: right; }
+  .fee-pct { font-size: 11px; color: var(--text-muted); width: 40px; text-align: right; }
+  .fee-bar-wrap { width: 60px; height: 6px; background: var(--bg); border-radius: 3px; margin: 0 8px; }
+  .fee-bar { height: 6px; border-radius: 3px; background: var(--accent); }
+
+  .auto-badge {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+    background: var(--green-light); color: var(--green); border-radius: 6px;
+    font-size: 11px; font-weight: 600;
+  }
+
+  /* Checkbox */
+  .check { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 32px; right: 32px; background: var(--dark); color: #fff;
+    padding: 14px 24px; border-radius: 10px; font-size: 13px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0;
+    transition: all 0.3s; z-index: 200; display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300;
+    display: none; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 14px; padding: 28px 32px; width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 16px; color: var(--navy); margin-bottom: 12px; }
+  .modal p { font-size: 13px; color: var(--text-light); margin-bottom: 20px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Demo banner */
+  .demo-banner {
+    background: linear-gradient(135deg, var(--navy), var(--accent));
+    color: #fff; text-align: center; padding: 8px; font-size: 12px; font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    道路占用管理<small>Road Occupancy Management</small>
+  </div>
+  <div class="sidebar-nav">
+    <div class="section-label">メインメニュー</div>
+    <a href="#" onclick="switchView('dashboard')" id="nav-dashboard">
+      <span class="icon">📊</span>ダッシュボード
+    </a>
+    <a href="#" onclick="switchView('applications')" id="nav-applications">
+      <span class="icon">📝</span>申請管理
+      <span class="sidebar-badge">3</span>
+    </a>
+    <a href="#" onclick="switchView('cases')" id="nav-cases">
+      <span class="icon">📁</span>案件一覧
+    </a>
+    <a href="#" onclick="switchView('renewals')" id="nav-renewals">
+      <span class="icon">🔄</span>更新管理
+      <span class="sidebar-badge">3</span>
+    </a>
+    <a href="#" onclick="showToast('📋 請求管理画面（デモ未実装）')" id="nav-billing">
+      <span class="icon">📋</span>請求管理
+    </a>
+    <div class="section-label">設定</div>
+    <a href="#" onclick="showToast('⚙ 設定画面（デモ未実装）')">
+      <span class="icon">⚙️</span>システム設定
+    </a>
+    <a href="#" onclick="showToast('👥 ユーザー管理画面（デモ未実装）')">
+      <span class="icon">👥</span>ユーザー管理
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    デモ環境 v0.1<br>© FBSS
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="demo-banner">
+    ※ これはソリューションイメージのデモ画面です。実際の製品とは異なる場合があります。
+  </div>
+
+  <!-- ===== View 1: 申請管理 ===== -->
+  <div class="view active" id="view-applications">
+    <div class="header">
+      <div>
+        <div class="breadcrumb"><a href="#">ホーム</a> &gt; 申請管理 &gt; 受付一覧</div>
+        <div class="page-title">新規申請 受付一覧</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" onclick="showToast('📥 CSVエクスポート完了')">📥 エクスポート</button>
+        <button class="btn btn-primary" onclick="showModal('add')">＋ 手動登録</button>
+        <div class="header-user">
+          <div class="avatar">田</div>
+          田中 太郎
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">📨 本日の新規受付</div>
+          <div class="stat-value blue">3<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">前日比 +1件</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">⏳ 審査中</div>
+          <div class="stat-value yellow">12<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">平均処理日数 3.2日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">✅ 許可済（今月）</div>
+          <div class="stat-value green">28<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">前月比 +5件</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">↩️ 差戻し</div>
+          <div class="stat-value red">2<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">要対応</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" class="search-input" placeholder="申請者名・申請番号で検索..." id="searchInput" oninput="filterTable()">
+        <button class="btn">🔽 絞り込み</button>
+        <button class="btn">ステータス ▾</button>
+        <button class="btn">種別 ▾</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="appTable">
+          <thead>
+            <tr>
+              <th style="width:40px"><input type="checkbox" class="check" onclick="toggleAll(this)"></th>
+              <th>申請番号</th>
+              <th>申請者</th>
+              <th>占用種別</th>
+              <th>占用場所</th>
+              <th>申請日</th>
+              <th>ステータス</th>
+              <th>担当</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link" onclick="switchView('cases')">R7-0412</span></td>
+              <td>東京電力パワーグリッド(株)</td>
+              <td>電柱・電線</td>
+              <td>◯◯市△△町1-2-3先</td>
+              <td>2025/04/10</td>
+              <td><span class="badge badge-yellow">審査中</span></td>
+              <td>田中</td>
+              <td><button class="btn btn-sm" onclick="switchView('cases')">詳細→</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link">R7-0411</span></td>
+              <td>NTT東日本(株)</td>
+              <td>通信ケーブル</td>
+              <td>◯◯市□□2-5-8先</td>
+              <td>2025/04/09</td>
+              <td><span class="badge badge-blue">受付済</span></td>
+              <td>佐藤</td>
+              <td><button class="btn btn-sm">詳細→</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link">R7-0410</span></td>
+              <td>(株)山田建設</td>
+              <td>工事用足場</td>
+              <td>◯◯市◎◎3-1先</td>
+              <td>2025/04/08</td>
+              <td><span class="badge badge-green">許可済</span></td>
+              <td>田中</td>
+              <td><button class="btn btn-sm">詳細→</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link">R7-0409</span></td>
+              <td>東京ガス(株)</td>
+              <td>ガス管埋設</td>
+              <td>◯◯市▽▽町4-7先</td>
+              <td>2025/04/07</td>
+              <td><span class="badge badge-green">許可済</span></td>
+              <td>鈴木</td>
+              <td><button class="btn btn-sm">詳細→</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link">R7-0408</span></td>
+              <td>(有)佐藤商店</td>
+              <td>看板・日よけ</td>
+              <td>◯◯市☆☆1-9先</td>
+              <td>2025/04/05</td>
+              <td><span class="badge badge-red">差戻し</span></td>
+              <td>佐藤</td>
+              <td><button class="btn btn-sm btn-danger">対応→</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link">R7-0407</span></td>
+              <td>(株)KDDI</td>
+              <td>通信ケーブル</td>
+              <td>◯◯市△△町5-3先</td>
+              <td>2025/04/04</td>
+              <td><span class="badge badge-green">許可済</span></td>
+              <td>田中</td>
+              <td><button class="btn btn-sm">詳細→</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="check"></td>
+              <td><span class="id-link">R7-0406</span></td>
+              <td>(株)田中工務店</td>
+              <td>工事用足場</td>
+              <td>◯◯市□□8-2先</td>
+              <td>2025/04/03</td>
+              <td><span class="badge badge-yellow">審査中</span></td>
+              <td>鈴木</td>
+              <td><button class="btn btn-sm">詳細→</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted)">
+        <span>全 45件中 1-7件を表示</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" disabled>← 前へ</button>
+          <button class="btn btn-sm" style="background:var(--accent);color:#fff;border-color:var(--accent)">1</button>
+          <button class="btn btn-sm">2</button>
+          <button class="btn btn-sm">3</button>
+          <button class="btn btn-sm">次へ →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== View 2: 案件詳細 ===== -->
+  <div class="view" id="view-cases">
+    <div class="header">
+      <div>
+        <div class="breadcrumb"><a href="#">ホーム</a> &gt; <a href="#" onclick="switchView('applications')">案件一覧</a> &gt; R7-0412</div>
+        <div class="page-title">案件詳細：R7-0412　東京電力PG(株) 電柱・電線設置</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn">🖨 印刷</button>
+        <button class="btn btn-primary" onclick="showToast('✅ 許可書を生成しました')">許可書発行</button>
+        <div class="header-user">
+          <div class="avatar">田</div>
+          田中 太郎
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="detail-grid">
+        <!-- Left: Case info -->
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header">
+              案件情報
+              <span class="badge badge-yellow">審査中</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row"><div class="info-label">申請番号</div><div class="info-value" style="font-family:Consolas;color:var(--blue)">R7-0412</div></div>
+              <div class="info-row"><div class="info-label">申請者</div><div class="info-value">東京電力パワーグリッド(株)</div></div>
+              <div class="info-row"><div class="info-label">申請者連絡先</div><div class="info-value">03-1234-5678</div></div>
+              <div class="info-row"><div class="info-label">占用種別</div><div class="info-value">電柱・電線</div></div>
+              <div class="info-row"><div class="info-label">占用場所</div><div class="info-value">◯◯市△△町1-2-3先</div></div>
+              <div class="info-row"><div class="info-label">占用期間</div><div class="info-value">R7.5.1 〜 R12.4.30（5年間）</div></div>
+              <div class="info-row"><div class="info-label">占用面積</div><div class="info-value">0.12 ㎡</div></div>
+              <div class="info-row"><div class="info-label">占用料（年額）</div><div class="info-value" style="font-weight:700;color:var(--navy)">¥2,400</div></div>
+              <div class="info-row"><div class="info-label">担当者</div><div class="info-value">田中 太郎</div></div>
+              <div class="info-row"><div class="info-label">受付日</div><div class="info-value">2025/04/10</div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="showToast('✏️ 編集モードに切り替えました')">✏️ 編集</button>
+            <button class="btn btn-primary" onclick="showToast('✅ 許可書を生成しました')">📄 許可書発行</button>
+            <button class="btn" onclick="showToast('📋 履歴を表示')">📋 対応履歴</button>
+            <button class="btn" onclick="showToast('💬 問い合わせ記録を表示')">💬 問い合わせ</button>
+          </div>
+        </div>
+
+        <!-- Right: Docs + Map -->
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header">
+              添付書類
+              <button class="btn btn-sm" onclick="showToast('📎 ファイルアップロード画面を開きます')">＋ 追加</button>
+            </div>
+            <div class="card-body">
+              <div class="doc-row">
+                <span class="doc-icon">📄</span>
+                <span class="doc-name" onclick="showToast('📄 道路占用許可申請書.pdf を表示')">道路占用許可申請書.pdf</span>
+                <span class="doc-size">1.2MB</span>
+                <span class="badge badge-green">確認済</span>
+              </div>
+              <div class="doc-row">
+                <span class="doc-icon">📐</span>
+                <span class="doc-name" onclick="showToast('📐 図面を表示')">図面_電柱配置図.pdf</span>
+                <span class="doc-size">3.4MB</span>
+                <span class="badge badge-green">確認済</span>
+              </div>
+              <div class="doc-row">
+                <span class="doc-icon">📷</span>
+                <span class="doc-name" onclick="showToast('📷 写真を表示')">現況写真_01.jpg</span>
+                <span class="doc-size">2.1MB</span>
+                <span class="badge badge-yellow">未確認</span>
+              </div>
+              <div class="doc-row">
+                <span class="doc-icon">📋</span>
+                <span class="doc-name" onclick="showToast('📋 構造図を表示')">構造図_電柱.pdf</span>
+                <span class="doc-size">890KB</span>
+                <span class="badge badge-green">確認済</span>
+              </div>
+              <div class="doc-row">
+                <span class="doc-icon">📝</span>
+                <span class="doc-name" onclick="showToast('📝 工事計画書を表示')">工事計画書.pdf</span>
+                <span class="doc-size">1.5MB</span>
+                <span class="badge badge-green">確認済</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">占用位置（地図表示）</div>
+            <div class="card-body" style="padding:12px">
+              <div class="map-placeholder">
+                <div class="map-grid-h" style="top:25%"></div>
+                <div class="map-grid-h" style="top:50%"></div>
+                <div class="map-grid-h" style="top:75%"></div>
+                <div class="map-grid-v" style="left:20%"></div>
+                <div class="map-grid-v" style="left:40%"></div>
+                <div class="map-grid-v" style="left:60%"></div>
+                <div class="map-grid-v" style="left:80%"></div>
+                <!-- Buildings -->
+                <div style="position:absolute;top:10%;left:5%;width:13%;height:35%;background:#c8d8c0;border-radius:4px"></div>
+                <div style="position:absolute;top:55%;left:5%;width:13%;height:20%;background:#c8d8c0;border-radius:4px"></div>
+                <div style="position:absolute;top:5%;left:42%;width:16%;height:18%;background:#d0dcc8;border-radius:4px"></div>
+                <div style="position:absolute;top:60%;left:62%;width:18%;height:15%;background:#c8d8c0;border-radius:4px"></div>
+                <div style="position:absolute;top:10%;left:82%;width:14%;height:35%;background:#d0dcc8;border-radius:4px"></div>
+                <!-- Pin -->
+                <div class="map-pin" style="left:50%;top:55%">📍</div>
+                <div class="map-label" style="left:56%;top:44%">◯◯市△△町1-2-3先</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== View 3: 更新管理 ===== -->
+  <div class="view" id="view-renewals">
+    <div class="header">
+      <div>
+        <div class="breadcrumb"><a href="#">ホーム</a> &gt; 更新管理</div>
+        <div class="page-title">更新管理ダッシュボード</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" onclick="showToast('📥 更新一覧をCSVエクスポートしました')">📥 エクスポート</button>
+        <button class="btn btn-primary" onclick="showModal('notify')">📨 一括通知送付</button>
+        <div class="header-user">
+          <div class="avatar">田</div>
+          田中 太郎
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">⚠️ 今月更新期限</div>
+          <div class="stat-value yellow">8<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">あと20日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📨 通知未送付</div>
+          <div class="stat-value red">3<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">要対応</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">✅ 入金確認済</div>
+          <div class="stat-value green">42<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">今年度累計</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📅 来月更新予定</div>
+          <div class="stat-value blue">15<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">事前通知推奨</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Left: Update list -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              今月の更新対象一覧
+              <span class="auto-badge">🤖 自動抽出</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px"><input type="checkbox" class="check" onclick="toggleAllRenew(this)"></th>
+                    <th>案件番号</th>
+                    <th>事業者</th>
+                    <th>占用種別</th>
+                    <th>更新期限</th>
+                    <th>占用料</th>
+                    <th>通知状況</th>
+                    <th>入金</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0102</span></td>
+                    <td>東京電力PG(株)</td>
+                    <td>電柱・電線</td>
+                    <td>2025/04/30</td>
+                    <td style="font-weight:600">¥2,400</td>
+                    <td><span class="badge badge-green">送付済</span></td>
+                    <td><span class="badge badge-green">確認済</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0087</span></td>
+                    <td>NTT東日本(株)</td>
+                    <td>通信ケーブル</td>
+                    <td>2025/04/30</td>
+                    <td style="font-weight:600">¥3,600</td>
+                    <td><span class="badge badge-green">送付済</span></td>
+                    <td><span class="badge badge-yellow">未確認</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0134</span></td>
+                    <td>(株)山田建設</td>
+                    <td>工事用足場</td>
+                    <td style="color:var(--red);font-weight:600">2025/04/15</td>
+                    <td style="font-weight:600">¥8,200</td>
+                    <td><span class="badge badge-red">未送付</span></td>
+                    <td><span class="badge badge-gray">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0156</span></td>
+                    <td>東京ガス(株)</td>
+                    <td>ガス管埋設</td>
+                    <td style="color:var(--red);font-weight:600">2025/04/20</td>
+                    <td style="font-weight:600">¥1,800</td>
+                    <td><span class="badge badge-red">未送付</span></td>
+                    <td><span class="badge badge-gray">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0201</span></td>
+                    <td>(有)佐藤商店</td>
+                    <td>看板・日よけ</td>
+                    <td>2025/04/25</td>
+                    <td style="font-weight:600">¥4,500</td>
+                    <td><span class="badge badge-green">送付済</span></td>
+                    <td><span class="badge badge-green">確認済</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0178</span></td>
+                    <td>(株)田中工務店</td>
+                    <td>工事用足場</td>
+                    <td>2025/04/28</td>
+                    <td style="font-weight:600">¥6,300</td>
+                    <td><span class="badge badge-red">未送付</span></td>
+                    <td><span class="badge badge-gray">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0192</span></td>
+                    <td>(株)KDDI</td>
+                    <td>通信ケーブル</td>
+                    <td>2025/04/30</td>
+                    <td style="font-weight:600">¥5,200</td>
+                    <td><span class="badge badge-green">送付済</span></td>
+                    <td><span class="badge badge-yellow">未確認</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0210</span></td>
+                    <td>東京水道(株)</td>
+                    <td>水道管</td>
+                    <td>2025/04/30</td>
+                    <td style="font-weight:600">¥3,800</td>
+                    <td><span class="badge badge-green">送付済</span></td>
+                    <td><span class="badge badge-green">確認済</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Fee summary -->
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header">
+              占用料 自動計算サマリ
+              <span class="auto-badge">🤖 自動計算</span>
+            </div>
+            <div class="card-body">
+              <div class="fee-total">
+                <div class="fee-label">今月請求合計</div>
+                <div class="fee-amount">¥1,284,600</div>
+                <div style="font-size:11px;color:var(--text-muted)">対象 8件 ・ 前月比 +¥124,200</div>
+              </div>
+              <div style="border-top:1px solid var(--border);padding-top:12px">
+                <div class="fee-row">
+                  <div class="fee-cat">電柱・電線</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:70%;background:var(--blue)"></div></div>
+                  <div class="fee-val">¥456,000</div>
+                  <div class="fee-pct">35%</div>
+                </div>
+                <div class="fee-row">
+                  <div class="fee-cat">ガス管・水道管</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:48%;background:var(--accent)"></div></div>
+                  <div class="fee-val">¥312,400</div>
+                  <div class="fee-pct">24%</div>
+                </div>
+                <div class="fee-row">
+                  <div class="fee-cat">通信ケーブル</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:45%;background:var(--green)"></div></div>
+                  <div class="fee-val">¥289,200</div>
+                  <div class="fee-pct">23%</div>
+                </div>
+                <div class="fee-row">
+                  <div class="fee-cat">工事用足場</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:22%;background:var(--yellow)"></div></div>
+                  <div class="fee-val">¥142,000</div>
+                  <div class="fee-pct">11%</div>
+                </div>
+                <div class="fee-row">
+                  <div class="fee-cat">その他</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:14%;background:var(--text-muted)"></div></div>
+                  <div class="fee-val">¥85,000</div>
+                  <div class="fee-pct">7%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">条例設定</div>
+            <div class="card-body" style="font-size:12px;color:var(--text-light);line-height:1.8">
+              <div>✅ 道路法第39条に基づき自動計算</div>
+              <div>✅ ◯◯市道路占用料条例 適用中</div>
+              <div>✅ 最終更新：2025/04/01</div>
+              <div style="margin-top:8px">
+                <button class="btn btn-sm" onclick="showToast('⚙ 条例設定画面を開きます')">⚙ 設定変更</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <h3 id="modalTitle"></h3>
+    <p id="modalBody"></p>
+    <div class="modal-actions">
+      <button class="btn" onclick="hideModal()">キャンセル</button>
+      <button class="btn btn-primary" id="modalAction" onclick="hideModal()"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // View switching
+  function switchView(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+
+    const viewMap = {
+      dashboard: 'applications',
+      applications: 'applications',
+      cases: 'cases',
+      renewals: 'renewals',
+    };
+    const targetView = viewMap[view] || view;
+    document.getElementById('view-' + targetView).classList.add('active');
+
+    const navId = 'nav-' + view;
+    const navEl = document.getElementById(navId);
+    if (navEl) navEl.classList.add('active');
+
+    window.scrollTo(0, 0);
+  }
+
+  // Toast notification
+  function showToast(message) {
+    const t = document.getElementById('toast');
+    t.textContent = message;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Modal
+  function showModal(type) {
+    const overlay = document.getElementById('modalOverlay');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+    const action = document.getElementById('modalAction');
+
+    if (type === 'add') {
+      title.textContent = '新規申請の手動登録';
+      body.textContent = '事業者がオンライン申請を行わない場合、窓口で受け付けた紙の申請を手動で登録できます。\n申請書の内容をフォームに入力してください。';
+      action.textContent = '登録画面へ';
+      action.onclick = () => { hideModal(); showToast('📝 新規登録フォームを開きました'); };
+    } else if (type === 'notify') {
+      title.textContent = '更新通知の一括送付';
+      body.textContent = '未送付の3件に対して、更新通知書を一括で生成・送付します。\n通知書は自動生成され、メールまたは郵送にて事業者に送付されます。\n\n対象：(株)山田建設、東京ガス(株)、(株)田中工務店';
+      action.textContent = '一括送付する';
+      action.onclick = () => { hideModal(); showToast('📨 3件の更新通知を送付しました'); };
+    }
+
+    overlay.classList.add('show');
+  }
+
+  function hideModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modalOverlay')) hideModal();
+  }
+
+  // Table filter
+  function filterTable() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#appTable tbody tr');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+
+  // Checkbox toggle
+  function toggleAll(el) {
+    document.querySelectorAll('#appTable tbody .check').forEach(c => c.checked = el.checked);
+  }
+  function toggleAllRenew(el) {
+    el.closest('table').querySelectorAll('tbody .check').forEach(c => c.checked = el.checked);
+  }
+
+  // Init: default view
+  switchView('applications');
+</script>
+</body>
+</html>
