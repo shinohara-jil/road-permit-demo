@@ -291,10 +291,13 @@
       <span class="icon">📁</span>案件一覧
     </a>
     <a href="#" onclick="switchView('renewals')" id="nav-renewals">
-      <span class="icon">🔄</span>更新管理
+      <span class="icon">🔄</span>更新期限管理
       <span class="sidebar-badge">3</span>
     </a>
-    <a href="#" onclick="showToast('📋 請求管理画面（デモ未実装）')" id="nav-billing">
+    <a href="#" onclick="switchView('billing')" id="nav-billing">
+      <span class="icon">💰</span>料金管理
+    </a>
+    <a href="#" onclick="showToast('📋 請求管理画面（デモ未実装）')" id="nav-invoicing">
       <span class="icon">📋</span>請求管理
     </a>
     <div class="section-label">設定</div>
@@ -591,8 +594,8 @@
   <div class="view" id="view-renewals">
     <div class="header">
       <div>
-        <div class="breadcrumb"><a href="#">ホーム</a> &gt; 更新管理</div>
-        <div class="page-title">更新管理ダッシュボード</div>
+        <div class="breadcrumb"><a href="#">ホーム</a> &gt; 更新期限管理</div>
+        <div class="page-title">更新期限管理</div>
       </div>
       <div class="header-actions">
         <button class="btn" onclick="showToast('📥 更新一覧をCSVエクスポートしました')">📥 エクスポート</button>
@@ -616,7 +619,7 @@
           <div class="stat-sub">要対応</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">✅ 入金確認済</div>
+          <div class="stat-label">✅ 更新完了</div>
           <div class="stat-value green">42<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
           <div class="stat-sub">今年度累計</div>
         </div>
@@ -644,9 +647,8 @@
                     <th>事業者</th>
                     <th>占用種別</th>
                     <th>更新期限</th>
-                    <th>占用料</th>
                     <th>通知状況</th>
-                    <th>入金</th>
+                    <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -656,9 +658,8 @@
                     <td>東京電力PG(株)</td>
                     <td>電柱・電線</td>
                     <td>2025/04/30</td>
-                    <td style="font-weight:600">¥2,400</td>
                     <td><span class="badge badge-green">送付済</span></td>
-                    <td><span class="badge badge-green">確認済</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -666,9 +667,8 @@
                     <td>NTT東日本(株)</td>
                     <td>通信ケーブル</td>
                     <td>2025/04/30</td>
-                    <td style="font-weight:600">¥3,600</td>
                     <td><span class="badge badge-green">送付済</span></td>
-                    <td><span class="badge badge-yellow">未確認</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -676,9 +676,8 @@
                     <td>(株)山田建設</td>
                     <td>工事用足場</td>
                     <td style="color:var(--red);font-weight:600">2025/04/15</td>
-                    <td style="font-weight:600">¥8,200</td>
                     <td><span class="badge badge-red">未送付</span></td>
-                    <td><span class="badge badge-gray">—</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -686,9 +685,8 @@
                     <td>東京ガス(株)</td>
                     <td>ガス管埋設</td>
                     <td style="color:var(--red);font-weight:600">2025/04/20</td>
-                    <td style="font-weight:600">¥1,800</td>
                     <td><span class="badge badge-red">未送付</span></td>
-                    <td><span class="badge badge-gray">—</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -696,9 +694,8 @@
                     <td>(有)佐藤商店</td>
                     <td>看板・日よけ</td>
                     <td>2025/04/25</td>
-                    <td style="font-weight:600">¥4,500</td>
                     <td><span class="badge badge-green">送付済</span></td>
-                    <td><span class="badge badge-green">確認済</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -706,9 +703,8 @@
                     <td>(株)田中工務店</td>
                     <td>工事用足場</td>
                     <td>2025/04/28</td>
-                    <td style="font-weight:600">¥6,300</td>
                     <td><span class="badge badge-red">未送付</span></td>
-                    <td><span class="badge badge-gray">—</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -716,9 +712,8 @@
                     <td>(株)KDDI</td>
                     <td>通信ケーブル</td>
                     <td>2025/04/30</td>
-                    <td style="font-weight:600">¥5,200</td>
                     <td><span class="badge badge-green">送付済</span></td>
-                    <td><span class="badge badge-yellow">未確認</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
                   </tr>
                   <tr>
                     <td><input type="checkbox" class="check"></td>
@@ -726,8 +721,204 @@
                     <td>東京水道(株)</td>
                     <td>水道管</td>
                     <td>2025/04/30</td>
-                    <td style="font-weight:600">¥3,800</td>
                     <td><span class="badge badge-green">送付済</span></td>
+                    <td><span class="id-link" onclick="showToast('📄 更新詳細を表示')">詳細→</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Notification summary -->
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header">
+              通知状況サマリ
+              <span class="auto-badge">🤖 自動集計</span>
+            </div>
+            <div class="card-body">
+              <div class="fee-total">
+                <div class="fee-label">今月の通知進捗</div>
+                <div class="fee-amount" style="color:var(--green)">63%</div>
+                <div style="font-size:11px;color:var(--text-muted)">送付済 5件 / 全8件</div>
+              </div>
+              <div style="border-top:1px solid var(--border);padding-top:12px">
+                <div class="fee-row">
+                  <div class="fee-cat">送付済</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:63%;background:var(--green)"></div></div>
+                  <div class="fee-val">5件</div>
+                  <div class="fee-pct">63%</div>
+                </div>
+                <div class="fee-row">
+                  <div class="fee-cat">未送付</div>
+                  <div class="fee-bar-wrap"><div class="fee-bar" style="width:37%;background:var(--red)"></div></div>
+                  <div class="fee-val">3件</div>
+                  <div class="fee-pct">37%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header">更新スケジュール</div>
+            <div class="card-body" style="font-size:12px;color:var(--text-light);line-height:1.8">
+              <div>📅 4/15 — (株)山田建設 <span style="color:var(--red);font-weight:600">あと9日</span></div>
+              <div>📅 4/20 — 東京ガス(株) <span style="color:var(--red);font-weight:600">あと14日</span></div>
+              <div>📅 4/25 — (有)佐藤商店 <span style="color:var(--yellow)">あと19日</span></div>
+              <div>📅 4/28 — (株)田中工務店 <span style="color:var(--yellow)">あと22日</span></div>
+              <div>📅 4/30 — 他4件 <span style="color:var(--text-muted)">あと24日</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">通知設定</div>
+            <div class="card-body" style="font-size:12px;color:var(--text-light);line-height:1.8">
+              <div>✅ 期限60日前に自動通知</div>
+              <div>✅ 期限30日前にリマインド</div>
+              <div>✅ 未送付アラート：有効</div>
+              <div style="margin-top:8px">
+                <button class="btn btn-sm" onclick="showToast('⚙ 通知設定画面を開きます')">⚙ 設定変更</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== View 4: 料金管理 ===== -->
+  <div class="view" id="view-billing">
+    <div class="header">
+      <div>
+        <div class="breadcrumb"><a href="#">ホーム</a> &gt; 料金管理</div>
+        <div class="page-title">料金管理</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" onclick="showToast('📥 請求一覧をCSVエクスポートしました')">📥 エクスポート</button>
+        <button class="btn btn-primary" onclick="showToast('📨 請求書を一括生成しました')">📨 請求書一括生成</button>
+        <div class="header-user">
+          <div class="avatar">田</div>
+          田中 太郎
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">💰 今月請求合計</div>
+          <div class="stat-value blue">¥1,284,600</div>
+          <div class="stat-sub">対象 8件</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">✅ 入金確認済</div>
+          <div class="stat-value green">3<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">¥710,200</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">⚠️ 未入金</div>
+          <div class="stat-value yellow">2<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">¥358,400</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📋 未請求</div>
+          <div class="stat-value red">3<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> 件</span></div>
+          <div class="stat-sub">¥216,000</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Left: Billing table -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              今月の請求対象一覧
+              <span class="auto-badge">🤖 自動計算</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px"><input type="checkbox" class="check" onclick="toggleAllBilling(this)"></th>
+                    <th>案件番号</th>
+                    <th>事業者</th>
+                    <th>占用種別</th>
+                    <th>占用料（年額）</th>
+                    <th>請求状況</th>
+                    <th>入金</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0102</span></td>
+                    <td>東京電力PG(株)</td>
+                    <td>電柱・電線</td>
+                    <td style="font-weight:600">¥2,400</td>
+                    <td><span class="badge badge-green">請求済</span></td>
+                    <td><span class="badge badge-green">確認済</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0087</span></td>
+                    <td>NTT東日本(株)</td>
+                    <td>通信ケーブル</td>
+                    <td style="font-weight:600">¥3,600</td>
+                    <td><span class="badge badge-green">請求済</span></td>
+                    <td><span class="badge badge-yellow">未確認</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0134</span></td>
+                    <td>(株)山田建設</td>
+                    <td>工事用足場</td>
+                    <td style="font-weight:600">¥8,200</td>
+                    <td><span class="badge badge-red">未請求</span></td>
+                    <td><span class="badge badge-gray">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0156</span></td>
+                    <td>東京ガス(株)</td>
+                    <td>ガス管埋設</td>
+                    <td style="font-weight:600">¥1,800</td>
+                    <td><span class="badge badge-red">未請求</span></td>
+                    <td><span class="badge badge-gray">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0201</span></td>
+                    <td>(有)佐藤商店</td>
+                    <td>看板・日よけ</td>
+                    <td style="font-weight:600">¥4,500</td>
+                    <td><span class="badge badge-green">請求済</span></td>
+                    <td><span class="badge badge-green">確認済</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0178</span></td>
+                    <td>(株)田中工務店</td>
+                    <td>工事用足場</td>
+                    <td style="font-weight:600">¥6,300</td>
+                    <td><span class="badge badge-red">未請求</span></td>
+                    <td><span class="badge badge-gray">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0192</span></td>
+                    <td>(株)KDDI</td>
+                    <td>通信ケーブル</td>
+                    <td style="font-weight:600">¥5,200</td>
+                    <td><span class="badge badge-green">請求済</span></td>
+                    <td><span class="badge badge-yellow">未確認</span></td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" class="check"></td>
+                    <td><span class="id-link">R5-0210</span></td>
+                    <td>東京水道(株)</td>
+                    <td>水道管</td>
+                    <td style="font-weight:600">¥3,800</td>
+                    <td><span class="badge badge-green">請求済</span></td>
                     <td><span class="badge badge-green">確認済</span></td>
                   </tr>
                 </tbody>
@@ -828,6 +1019,7 @@
       applications: 'applications',
       cases: 'cases',
       renewals: 'renewals',
+      billing: 'billing',
     };
     const targetView = viewMap[view] || view;
     document.getElementById('view-' + targetView).classList.add('active');
@@ -892,6 +1084,9 @@
     document.querySelectorAll('#appTable tbody .check').forEach(c => c.checked = el.checked);
   }
   function toggleAllRenew(el) {
+    el.closest('table').querySelectorAll('tbody .check').forEach(c => c.checked = el.checked);
+  }
+  function toggleAllBilling(el) {
     el.closest('table').querySelectorAll('tbody .check').forEach(c => c.checked = el.checked);
   }
 
